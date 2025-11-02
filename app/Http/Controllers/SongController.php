@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
@@ -86,71 +87,77 @@ class SongController extends Controller
     public function store(Request $request)
     {
         $track = new GetId3(request()->file('file'));
-
-        $song = new Songs;
-        $song->title = $track->getTitle();
-        $song->artist = $track->getArtist();
-        $song->album = $track->getAlbum();
-        $song->duration = $track->getPlaytime();
-        $song->filename = Str::uuid()->toString();
-        $song->save();
-
-        $path = $request->file('file')->storeAs('songs', $song->filename, 'public');
-        $artwork = $track->getArtwork(true);
-
-        if ($artwork != null) {
-            $album_path = $track->getArtwork(true)->storeAs('art', $song->filename, 'public');
-        }
-
-        event(new AddNotifierEvent($song));
-
-        return response()->json([
-            "message" => "Song added."
-        ], 201);
+        
+        DB::transaction(function() use ($request, $track) {
+            $song = new Songs;
+            $song->title = $track->getTitle();
+            $song->artist = $track->getArtist();
+            $song->album = $track->getAlbum();
+            $song->duration = $track->getPlaytime();
+            $song->filename = Str::uuid()->toString();
+            $song->save();
+    
+            $path = $request->file('file')->storeAs('songs', $song->filename, 'public');
+            $artwork = $track->getArtwork(true);
+    
+            if ($artwork != null) {
+                $album_path = $track->getArtwork(true)->storeAs('art', $song->filename, 'public');
+            }
+    
+            event(new AddNotifierEvent($song));
+    
+            return response()->json([
+                "message" => "Song added."
+            ], 201);
+        });
     }
 
     public function update(Request $request, String $filename)
     {
         $filename = $request->filename;
 
-        if (Songs::where('filename', '=', $filename)->exists()) {
-            $song = Songs::where('filename', '=', $filename)->first();
-            $song->title = is_null($request->title) ? $song->title : $request->title;
-            $song->artist = is_null($request->artist) ? $song->artist : $request->artist;
-            $song->album = is_null($request->album) ? $song->album : $request->album;
-            $song->save();
-
-            event(new UpdateNotifierEvent($song));
-            
-            return response()->json([
-                "message" => "Song details edited."
-            ], 201);
-        } else {
-            return response()->json([
-                "message" => "$filename: Song can't be found using that filename."
-            ], 404);
-        }
+        DB::transaction(function() use ($request, $filename) {
+            if (Songs::where('filename', '=', $filename)->exists()) {
+                $song = Songs::where('filename', '=', $filename)->first();
+                $song->title = is_null($request->title) ? $song->title : $request->title;
+                $song->artist = is_null($request->artist) ? $song->artist : $request->artist;
+                $song->album = is_null($request->album) ? $song->album : $request->album;
+                $song->save();
+    
+                event(new UpdateNotifierEvent($song));
+                
+                return response()->json([
+                    "message" => "Song details edited."
+                ], 201);
+            } else {
+                return response()->json([
+                    "message" => "$filename: Song can't be found using that filename."
+                ], 404);
+            }
+        });
     }
 
     public function destroy($filename)
     {
-        if (Songs::where('filename', '=', $filename)->exists()) {
-            $song = Songs::where('filename', '=', $filename)->first();
-
-            // Delete the files related to the song.
-            Storage::disk('public')->delete('songs/'.$filename);
-            Storage::disk('public')->delete('art/'.$filename);
-
-            $song->delete();
-
-            event(new DestroyNotifierEvent($song));
-            return response()->json([
-                "message" => "Song deleted."
-            ], 201);
-        } else {
-            return response()->json([
-                "message" => "Song can't be found using that filename."
-            ], 404);
-        }
+        DB::transaction(function() use ($filename) {
+            if (Songs::where('filename', '=', $filename)->exists()) {
+                $song = Songs::where('filename', '=', $filename)->first();
+    
+                // Delete the files related to the song.
+                Storage::disk('public')->delete('songs/'.$filename);
+                Storage::disk('public')->delete('art/'.$filename);
+    
+                $song->delete();
+    
+                event(new DestroyNotifierEvent($song));
+                return response()->json([
+                    "message" => "Song deleted."
+                ], 201);
+            } else {
+                return response()->json([
+                    "message" => "Song can't be found using that filename."
+                ], 404);
+            }
+        });
     }
 }

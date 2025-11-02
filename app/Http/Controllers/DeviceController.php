@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\Devices;
 use App\Events\DevicesEvent;
@@ -35,21 +36,23 @@ class DeviceController extends Controller
 
     public function register(Request $request)
     {
-        if (!Devices::where('key', '=', $request->key)->exists()) {
-            $device = new Devices;
-            $device->nickname = $request->nickname;
-            $device->key = $request->key;
-            $device->device_type = $request->device_type;
-            $device->current_song = $request->current_song;
-            $device->save();
-    
-            return response()->json([
-                "message" => "Device registered."
-            ], 201);
-        } else {
-            return response()->json([
-                "message" => "Device already registered."
-            ], 200);
-        }
+        DB::transaction(function() use ($request) {
+            if (!Devices::where('key', '=', $request->key)->exists()) {
+                $device = new Devices;
+                $device->nickname = $request->nickname;
+                $device->key = $request->key;
+                $device->device_type = $request->device_type;
+                $device->current_song = $request->current_song;
+                $device->save();
+        
+                return response()->json([
+                    "message" => "Device registered."
+                ], 201);
+            } else {
+                return response()->json([
+                    "message" => "Device already registered."
+                ], 200);
+            }
+        });
     }
 }
