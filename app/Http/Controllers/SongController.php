@@ -88,7 +88,7 @@ class SongController extends Controller
     {
         $track = new GetId3(request()->file('file'));
         
-        DB::transaction(function() use ($request, $track) {
+        return DB::transaction(function() use ($request, $track) {
             $song = new Songs;
             $song->title = $track->getTitle();
             $song->artist = $track->getArtist();
@@ -116,7 +116,7 @@ class SongController extends Controller
     {
         $filename = $request->filename;
 
-        DB::transaction(function() use ($request, $filename) {
+        return DB::transaction(function() use ($request, $filename) {
             if (Songs::where('filename', '=', $filename)->exists()) {
                 $song = Songs::where('filename', '=', $filename)->first();
                 $song->title = is_null($request->title) ? $song->title : $request->title;
@@ -139,7 +139,7 @@ class SongController extends Controller
 
     public function destroy($filename)
     {
-        DB::transaction(function() use ($filename) {
+        return DB::transaction(function() use ($filename) {
             if (Songs::where('filename', '=', $filename)->exists()) {
                 $song = Songs::where('filename', '=', $filename)->first();
     

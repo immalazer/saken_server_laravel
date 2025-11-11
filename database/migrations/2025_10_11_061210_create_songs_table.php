@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('artist');
             $table->string('album');
             $table->string('duration');
-            $table->string('filename')->unique();
+            $table->string('filename')->primary()->unique();
             $table->timestamps();
         });
     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\Devices;
@@ -36,17 +37,23 @@ class DeviceController extends Controller
 
     public function register(Request $request)
     {
-        DB::transaction(function() use ($request) {
+        return DB::transaction(function() use ($request) {
             if (!Devices::where('key', '=', $request->key)->exists()) {
                 $device = new Devices;
                 $device->nickname = $request->nickname;
-                $device->key = $request->key;
+                // Some devices may have UUID already, so let's assume that's a sane UUID to use.
+                if (($request->key != 'unknown') || ($request->key != null)) {
+                    $device->key = $request->key;
+                } else {
+                    $device->key = Str::uuid();
+                }
                 $device->device_type = $request->device_type;
                 $device->current_song = $request->current_song;
                 $device->save();
         
                 return response()->json([
-                    "message" => "Device registered."
+                    "message" => "Device registered.",
+                    "uuid" => $device->key
                 ], 201);
             } else {
                 return response()->json([

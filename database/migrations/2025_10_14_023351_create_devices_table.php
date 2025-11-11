@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('devices', function (Blueprint $table) {
             $table->string('nickname');
-            $table->string('key')->unique();
+            $table->uuid('key')->primary()->unique();
             $table->string('device_type');
             $table->string('current_song')->nullable();
             $table->foreign('current_song')
