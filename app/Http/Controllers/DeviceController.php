@@ -5,20 +5,20 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
-use App\Models\Devices;
+use App\Models\Device;
 use App\Events\DevicesEvent;
 
 class DeviceController extends Controller
 {
     public function get()
     {
-        $devices = Devices::all();
+        $devices = Device::all();
         return response()->json($devices);
     }
     
     public function invoke(Request $request, String $deviceId)
     {
-        if (Devices::where('key', '=', $deviceId)->exists()) {
+        if (Device::where('key', '=', $deviceId)->exists()) {
             $reason = $request->reason;
             $origin = $request->origin;
             $key = $deviceId;
@@ -38,8 +38,8 @@ class DeviceController extends Controller
     public function register(Request $request)
     {
         return DB::transaction(function() use ($request) {
-            if (!Devices::where('key', '=', $request->key)->exists()) {
-                $device = new Devices;
+            if (!Device::where('key', '=', $request->key)->exists()) {
+                $device = new Device;
                 $device->nickname = $request->nickname;
                 // Some devices may have UUID already, so let's assume that's a sane UUID to use.
                 if (($request->key != 'unknown') || ($request->key != null)) {
