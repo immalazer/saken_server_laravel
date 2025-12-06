@@ -20,9 +20,6 @@ return new class extends Migration
         Schema::create('albums', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->foreignId('artist_id')
-                ->constrained()
-                ->cascadeOnDelete();
             $table->timestamps();
         });
 
@@ -49,6 +46,18 @@ return new class extends Migration
             $table->unique(['song_filename', 'artist_id']);
             $table->timestamps();
         });
+
+        Schema::create('album_artist', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('album_id')
+                ->constrained()
+                ->cascadeOnDelete();
+            $table->foreignId('artist_id')
+                ->constrained()
+                ->cascadeOnDelete();
+            $table->unique(['album_id', 'artist_id']);
+            $table->timestamps();
+        });
     }
 
     /**
@@ -57,6 +66,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('artist_song');
+        Schema::dropIfExists('album_artist');
         Schema::dropIfExists('songs');
         Schema::dropIfExists('albums');
         Schema::dropIfExists('artists');

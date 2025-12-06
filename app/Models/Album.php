@@ -3,19 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Album extends Model
 {
     protected $fillable = [
         'title',
-        'artist_id',
     ];
 
-    public function artist(): BelongsTo
+    public function artists(): BelongsToMany
     {
-        return $this->belongsTo(Artist::class);
+        return $this->belongsToMany(Artist::class, 'album_artist')
+                    ->withTimestamps();
     }
 
     public function songs(): HasMany

@@ -125,14 +125,29 @@ class SongController extends Controller
         $track = new GetId3($request->file('file'));
 
         return DB::transaction(function () use ($request, $track) {
-            $artist = Artist::firstOrCreate([
-                'name' => $track->getArtist(),
-            ]);
+            // Manually extract the artist field because GetId3 only
+            // fetches the first artist from the track (sane, but not what we want.)
+            $artistNames = $track->extractInfo()['comments']['artist'] ?? [];
+
+            // Don't bother if there's only one artist.
+            if (! is_array($artistNames)) {
+                $artistNames = [$artistNames];
+            }
+
+            $artistNames = array_filter(array_unique($artistNames));
+
+            $artists = [];
+            foreach ($artistNames as $name) {
+                $artists[] = Artist::firstOrCreate(['name' => $name]);
+            }
+
+            $artistIds = array_map(fn ($x) => $x->id, $artists);
 
             $album = Album::firstOrCreate([
                 'title' => $track->getAlbum(),
-                'artist_id' => $artist->id,
             ]);
+
+            $album->artists()->syncWithoutDetaching($artistIds);
 
             $song = Song::create([
                 'filename' => Str::uuid()->toString(),
@@ -141,9 +156,9 @@ class SongController extends Controller
                 'album_id' => $album->id,
             ]);
 
-            $song->artists()->sync([$artist->id]);
+            $song->artists()->sync($artistIds);
 
-            $path = $request->file('file')->storeAs(
+            $request->file('file')->storeAs(
                 'songs',
                 $song->filename,
                 'public'
