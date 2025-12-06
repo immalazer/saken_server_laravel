@@ -2,7 +2,7 @@
 
 namespace App\Events;
 
-use App\Models\Songs;
+use App\Models\Song;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -16,11 +16,11 @@ class AddNotifierEvent implements ShouldBroadcastNow
     /**
      * Create a new event instance.
      */
-    public Songs $songs;
+    public Song $song;
 
-    public function __construct(Songs $songs)
+    public function __construct(Song $song)
     {
-        $this->songs = $songs;
+        $this->song = $song;
     }
 
     /**
@@ -39,7 +39,7 @@ class AddNotifierEvent implements ShouldBroadcastNow
      {
         return [
             'message' => 'add',
-            'filename' => $this->songs->filename,
+            'filename' => $this->song->filename,
         ];
     }
 }

@@ -21,6 +21,6 @@ class Devices extends Model
      */
     public function currentSong(): HasOne
     {
-        return $this->hasOne(Songs::class, 'filename', 'current_song');
+        return $this->hasOne(Song::class, 'filename', 'current_song');
     }
 }
