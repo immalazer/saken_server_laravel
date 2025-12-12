@@ -14,6 +14,8 @@ Route::middleware([LocalhostOrDevice::class])->group(function () {
     Route::post('/songs', [SongController::class, 'store']);
     Route::put('/songs/{filename}', [SongController::class, 'update']);
     Route::delete('/songs/{filename}', [SongController::class, 'destroy']);
+    Route::get('/devices', [DeviceController::class, 'get']);
+    Route::post('/devices/{deviceId}', [DeviceController::class, 'invoke']);
 });
 
 Route::withoutMiddleware([LocalhostOrDevice::class])->group(function () {
@@ -22,6 +24,4 @@ Route::withoutMiddleware([LocalhostOrDevice::class])->group(function () {
     Route::get('/play/{filename}', [SongController::class, 'play']);
     Route::get('/art/{filename}', [SongController::class, 'albumArt']);
     Route::post('/devices', [DeviceController::class, 'register']);
-    Route::get('/devices', [DeviceController::class, 'get']);
-    Route::post('/devices/{deviceId}', [DeviceController::class, 'invoke']);
 });
