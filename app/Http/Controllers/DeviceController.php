@@ -36,10 +36,9 @@ class DeviceController extends Controller
         }
     }
 
-    public function getPermission(Request $request)
+    public function getPermission(Request $request, string $deviceKey)
     {
-        $key = $request->header('X-Device-Key');
-        $device = Device::where('key', $key)->first();
+        $device = Device::where('key', $deviceKey)->first();
 
         if (! $device) {
             return response()->json([
@@ -54,13 +53,15 @@ class DeviceController extends Controller
 
     public function setPermission(Request $request, string $deviceKey)
     {
-        $requesterKey = $request->header('X-Device-Key');
-        $requester = Device::where('key', $requesterKey)->first();
+        if (!in_array($request->ip(), ['127.0.0.1', '::1'], true)) {
+            $requesterKey = $request->header('X-Device-Key');
+            $requester = Device::where('key', $requesterKey)->first();
 
-        if (!$requester || (string)$requester->permission !== '111') {
-            return response()->json([
-                'message' => 'Forbidden: Only superusers can set permissions.',
-            ], 403);
+            if (!$requester || (string)$requester->permission !== '111') {
+                return response()->json([
+                    'message' => 'Forbidden: Only superusers can set permissions.',
+                ], 403);
+            }
         }
 
         $validData = $request->validate([

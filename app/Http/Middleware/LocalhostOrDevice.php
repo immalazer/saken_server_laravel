@@ -21,8 +21,11 @@ class LocalhostOrDevice
         if ($key) {
             $device = Device::where('key', $key)->first();
 
-            if ($device && intval(substr((string)$device->permission, 0, 1)) > 0) {
-                return $next($request);
+            if ($device) {
+                $firstDigit = intval(substr((string)$device->permission, 0, 1));
+                if ($firstDigit > 0) {
+                    return $next($request);
+                }
             }
         }
 
