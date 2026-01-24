@@ -21,6 +21,7 @@ return new class extends Migration
                 ->on('songs')
                 ->onDelete('cascade')
                 ->onUpdate('cascade');
+            $table->integer('permission');
             $table->timestamps();
         });
     }

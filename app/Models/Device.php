@@ -14,7 +14,7 @@ class Device extends Model
     public $incrementing = false;
 
     protected $table = 'devices';
-    protected $fillable = ['nickname', 'key', 'device_type', 'current_song'];
+    protected $fillable = ['nickname', 'key', 'device_type', 'current_song', 'permission'];
 
     /**
      * Get the currently playing song.

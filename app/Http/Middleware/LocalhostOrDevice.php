@@ -18,8 +18,12 @@ class LocalhostOrDevice
 
         // Check for valid X-Device-Key in header.
         $key = $request->header('X-Device-Key');
-        if ($key && Device::where('key', $key)->exists()) {
-            return $next($request);
+        if ($key) {
+            $device = Device::where('key', $key)->first();
+
+            if ($device && intval(substr((string)$device->permission, 0, 1)) > 0) {
+                return $next($request);
+            }
         }
 
         return response()->json([

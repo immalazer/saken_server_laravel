@@ -24,4 +24,6 @@ Route::withoutMiddleware([LocalhostOrDevice::class])->group(function () {
     Route::get('/play/{filename}', [SongController::class, 'play']);
     Route::get('/art/{filename}', [SongController::class, 'albumArt']);
     Route::post('/devices', [DeviceController::class, 'register']);
+    Route::get('/devices/permission/', [DeviceController::class, 'getPermission']);
+    Route::post('/devices/{deviceKey}/permission', [DeviceController::class, 'setPermission']);
 });
