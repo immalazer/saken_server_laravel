@@ -52,10 +52,7 @@ class SongController extends Controller
                 abort(404, 'File not found.');
             }
 
-            $mimeType = mime_content_type($filePath);
-
             $headers = [
-                'Content-Type' => $mimeType,
                 'Access-Control-Allow-Origin' => '*',
             ];
 
@@ -141,10 +138,14 @@ class SongController extends Controller
                 $artists[] = Artist::firstOrCreate(['name' => $name]);
             }
 
+            if (empty($artists)) {
+                $artists[] = Artist::firstOrCreate(['name' => 'Unknown Artist']);
+            }
+
             $artistIds = array_map(fn ($x) => $x->id, $artists);
 
             $album = Album::firstOrCreate([
-                'title' => $track->getAlbum(),
+                'title' => $track->getAlbum() ?: 'Unknown Album',
             ]);
 
             $album->artists()->syncWithoutDetaching($artistIds);
